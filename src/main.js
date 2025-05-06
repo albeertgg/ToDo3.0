@@ -89,25 +89,14 @@ function createToDoHTML (toDo) {
   const deleteButton = article.querySelector('button');
 
   // //* Le escuchas el click
-  deleteButton.addEventListener('click', () => {
-    
-    //* Buscas dentro del array cual es el que quiero borrar (con el id)
-    const indexToDelete = allToDos.findIndex((item) => item.id === toDo.id);
-
-    //* Haces un splice para borrarlo del array
-    if (indexToDelete !== -1) {
-      allToDos.splice(indexToDelete, 1);
-    }
-
-    //* Reimprimes la lista de todos
-    printToDos();
-
-    //* Recalculas el número de items que faltan por completar
-    countItemsLeft();
-  });
+  deleteButton.addEventListener('click', () =>  deleteToDo(toDo))
 
   return article;
 }
+
+const $addToDoForm = document.querySelector('.add-todo-form');
+
+$addToDoForm.addEventListener('submit', handleAddToDoFormSubmit);
 
 function countItemsLeft () {
   const itemsLeftOutput = document.querySelector('.items-left-output');
@@ -121,10 +110,6 @@ function countItemsLeft () {
   
   itemsLeftOutput.innerText = itemsLeftCount;
 };
-
-const $addToDoForm = document.querySelector('.add-todo-form');
-
-$addToDoForm.addEventListener('submit', handleAddToDoFormSubmit);
 
 function handleAddToDoFormSubmit (event) {
   
@@ -179,3 +164,18 @@ function isInputEmpty (value) {
   }
 };
 
+function deleteToDo (toDo) {  
+  //* Buscas dentro del array cual es el que quiero borrar (con el id)
+  for (let i = 0; i < allToDos.length; i++) {
+    if (allToDos[i].id === toDo.id) {
+      //* Haces un splice para borrarlo del array
+      allToDos.splice(i, 1);
+      break; 
+    }
+  }
+  //* Reimprimes la lista de todos
+  printToDos();
+
+  //* Recalculas el número de items que faltan por completar
+  countItemsLeft();
+};
