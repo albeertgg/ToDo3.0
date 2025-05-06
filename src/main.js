@@ -20,6 +20,8 @@ const allToDos = [
   }
 ];
 
+// Cazo la sección donde añadiré las tareas
+const toDoList = document.querySelector('.toDo-list');
 
 
 // Imprimir los todos al cargar la página
@@ -31,12 +33,20 @@ countItemsLeft();
 
 
 function printToDos () {
+  // Borrar toda la lista de tareas
+  toDoList.innerHTML = '';
 
-  // Cazo la sección donde añadiré las tareas
-  const toDoList = document.querySelector('.toDo-list');
   // Recorro cada tarea de la lista de tareas
-  for (const toDo of allToDos) {
-  
+  for (const toDo of allToDos) {   
+
+    const article = createToDoHTML(toDo);  
+    // Lo meto en el DOM dentro de la sección
+    toDoList.append(article);  
+  }
+}
+
+function createToDoHTML (toDo) {
+
     // Creo un nuevo "article" por cada uno
     const article = document.createElement('article');
   
@@ -51,7 +61,7 @@ function printToDos () {
   
     // Le pongo lo de dentro
     article.innerHTML = `
-    <input aria-label="Complete to-do checkbox" id="${toDo.id}" class="hidden peer" type="checkbox" ${isChecked}>
+    <input aria-label="Complete to-do checkbox" id="${toDo.id}" class="complete-checkbox hidden peer" type="checkbox" ${isChecked}>
     <label for="${toDo.id}" class="w-4 h-4 border border-gray-400 rounded-full flex items-center justify-center peer-checked:bg-check-gradient">
       <svg class="${isCheckIconVisible} check-icon" xmlns="http://www.w3.org/2000/svg" width="10" height="9"><path fill="none" stroke="#FFF" stroke-width="2" d="M1 4.304L3.696 7l6-6"/></svg>
     </label>
@@ -62,10 +72,41 @@ function printToDos () {
       </svg>
     </button>
     `;
-  
-    // Lo meto en el DOM dentro de la sección
-    toDoList.append(article);  
-  }
+
+    
+    //* Justo aquí debajo, el article YA TIENE DENTRO el input y el Button que completan y borran el toDo.
+    const completedInput = article.querySelector('.complete-checkbox');
+    completedInput.addEventListener('change', () => {
+      // Aquí YO TENGO EL OBJETO DEL TODO ENTERO, así que puedo cambiar su propiedad isCompleted a true o false
+      toDo.isCompleted = !toDo.isCompleted;
+
+      printToDos();
+      countItemsLeft();
+    });
+    
+    
+    //* Ahora caza el boton de borrar
+  const deleteButton = article.querySelector('button');
+
+  // //* Le escuchas el click
+  deleteButton.addEventListener('click', () => {
+    
+    //* Buscas dentro del array cual es el que quiero borrar (con el id)
+    const indexToDelete = allToDos.findIndex((item) => item.id === toDo.id);
+
+    //* Haces un splice para borrarlo del array
+    if (indexToDelete !== -1) {
+      allToDos.splice(indexToDelete, 1);
+    }
+
+    //* Reimprimes la lista de todos
+    printToDos();
+
+    //* Recalculas el número de items que faltan por completar
+    countItemsLeft();
+  });
+
+  return article;
 }
 
 function countItemsLeft () {
@@ -79,4 +120,62 @@ function countItemsLeft () {
   }
   
   itemsLeftOutput.innerText = itemsLeftCount;
-}
+};
+
+const $addToDoForm = document.querySelector('.add-todo-form');
+
+$addToDoForm.addEventListener('submit', handleAddToDoFormSubmit);
+
+function handleAddToDoFormSubmit (event) {
+  
+  // Paramos el comportamiento por defecto del formulario
+  event.preventDefault();
+  
+  // Cogemos el valor del usuario
+  const newTaskValue = $addToDoForm.addToDoInput.value;
+  
+
+  //! Oye, mejor frena si te lo dejan vacío 
+  if(isInputEmpty(newTaskValue)) {
+    return;
+  }
+   
+  // Creamos un nuevo TODO que meteremos en el array
+  createNewToDo(newTaskValue);
+  
+  // Reimprimimos todos los todos
+  printToDos();
+
+  // Recalculamos el número de items que faltan por completar
+  countItemsLeft();
+
+  // vaciar el input
+  // opcion modificar el value a un string vacío
+  // $addToDoForm.addToDoInput.value = '';
+
+  // opción resetear el formulario
+  $addToDoForm.reset();
+};
+
+function createNewToDo (newTaskValue) {
+  const newToDo = {
+    id: nanoid(5),
+    task:  newTaskValue,
+    isCompleted: false
+  };
+
+  allToDos.push(newToDo);
+};
+
+function isInputEmpty (value) {
+  if (value === '') {
+    $addToDoForm.addToDoInput.classList.replace('focus-visible:ring-2', 'ring-4')
+    $addToDoForm.addToDoInput.classList.replace('focus-visible:ring-pink-500', 'ring-red-500')
+    return true;
+  } else {
+    $addToDoForm.addToDoInput.classList.replace('ring-4', 'focus-visible:ring-2')
+    $addToDoForm.addToDoInput.classList.replace('ring-red-500', 'focus-visible:ring-pink-500')
+    return false;
+  }
+};
+
